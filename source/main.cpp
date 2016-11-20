@@ -54,9 +54,34 @@ void DrawGround() {
 // Обновление смещения травинок
 void UpdateGrassVariance() {
     // Генерация случайных смещений
+
+    VM::vec4 wind(0.1 ,0 ,0.1, 0);
+
+    static vector<VM::vec4> acceleratons(GRASS_INSTANCES, VM::vec4(0,0,0,0));
+    static vector<VM::vec4> speeds(GRASS_INSTANCES, VM::vec4(0,0,0,0));
+
+    float k = 5;
+
     for (uint i = 0; i < GRASS_INSTANCES; ++i) {
-        grassVarianceData[i].x = 0; //(float)rand() / RAND_MAX / 100;
-        grassVarianceData[i].z = 0; //(float)rand() / RAND_MAX / 100;
+
+        VM::vec4 hook;
+        hook.x = - k * abs(grassVarianceData[i].x);
+        hook.y = - k * abs(grassVarianceData[i].y);
+        hook.z = - k * abs(grassVarianceData[i].z);
+
+
+        acceleratons[i].x = (wind.x + hook.x);
+        acceleratons[i].y = (wind.y + hook.y);
+        acceleratons[i].z = (wind.z + hook.z);
+
+
+        speeds[i].x += acceleratons[i].x;
+        speeds[i].y += acceleratons[i].y;
+        speeds[i].z += acceleratons[i].z;
+
+        grassVarianceData[i].x += speeds[i].x / 1000; // = (float)rand() / RAND_MAX / 100;
+        grassVarianceData[i].y += speeds[i].y / 1000 ;
+        grassVarianceData[i].z += speeds[i].z / 1000 ;  //= (float)rand() / RAND_MAX / 100;
     }
 
     // Привязываем буфер, содержащий смещения
@@ -194,10 +219,51 @@ vector<VM::vec2> GenerateGrassPositions() {
 
 // Здесь вам нужно будет генерировать меш
 vector<VM::vec4> GenMesh(uint n) {
+
+    double rx = (double)rand();
+    double ry = (double)rand();
+    double scmul = sqrt(pow(rx, 2) + pow(ry, 2));
+
+    rx /= scmul;
+    ry /= (scmul * 1000);
+
     return {
         VM::vec4(0, 0, 0, 1),
-        VM::vec4(1, 0, 0.1, 1),
-        VM::vec4(0.5, 1, 0.1, 1),
+        VM::vec4(2, 0, 0, 1),
+        VM::vec4(0, 0.5, 0, 1),
+
+        VM::vec4(0, 0.5, 0, 1),
+        VM::vec4(2, 0.5, 0, 1),
+        VM::vec4(2, 0, 0, 1),
+
+        VM::vec4(0, 0.5, 0, 1),
+        VM::vec4(2, 0.5, 0, 1),
+        VM::vec4(0, 1, 0, 1),
+
+        VM::vec4(0, 1, 0, 1),
+        VM::vec4(2, 1, 0, 1),
+        VM::vec4(2, 0.5, 0, 1),
+
+        VM::vec4(0, 1, 0, 1),
+        VM::vec4(2, 1, 0, 1),
+        VM::vec4(0, 1.5, 0, 1),
+
+        VM::vec4(0, 1.5, 0, 1),
+        VM::vec4(2, 1.5, 0, 1),
+        VM::vec4(2, 1, 0, 1),
+
+        VM::vec4(0, 1.5, 0, 1),
+        VM::vec4(2, 1.5, 0, 1),
+        VM::vec4(0, 2, 0, 1),
+
+        VM::vec4(0, 2, 0, 1),
+        VM::vec4(2, 2, 0, 1),
+        VM::vec4(2, 1.5, 0, 1),
+
+        VM::vec4(0, 2, 0, 1),
+        VM::vec4(2, 2, 0, 1),
+        VM::vec4(1, 2.25, 0, 1),
+
     };
 }
 

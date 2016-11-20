@@ -14,5 +14,7 @@ void main() {
     positionMatrix[3][0] = position.x;
     positionMatrix[3][2] = position.y;
 
-	gl_Position = camera * (positionMatrix * scaleMatrix * point + variance * point.y);
+    float p = exp( point.y / 2) - 1;
+
+	gl_Position = camera * (positionMatrix * scaleMatrix * point + variance * p);
 }
