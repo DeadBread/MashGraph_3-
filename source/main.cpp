@@ -6,7 +6,7 @@
 
 using namespace std;
 
-const uint GRASS_INSTANCES = 100000; // Количество травинок
+const uint GRASS_INSTANCES = 60000; // Количество травинок
 GLint grass_instances = GRASS_INSTANCES;
 
 GL::Camera camera;               // Мы предоставляем Вам реализацию камеры. В OpenGL камера - это просто 2 матрицы. Модельно-видовая матрица и матрица проекции. // ###
@@ -29,6 +29,8 @@ GLuint grassTexture; //Текстура для травы
 // Размеры экрана
 uint screenWidth = 800;
 uint screenHeight = 600;
+
+bool antialiasing = false;
 
 // Это для захвата мышки. Вам это не потребуется (это не значит, что нужно удалять эту строку)
 bool captureMouse = true;
@@ -145,7 +147,13 @@ void DrawGrass() {
     // Отрисовка травинок в количестве GRASS_INSTANCES
 
     glActiveTexture(GL_TEXTURE1);
-    glUniform1i(glGetUniformLocation(grassShader, "grassTexture"), 1);
+    if (antialiasing)
+        glDisable(GL_MULTISAMPLE);
+    else
+        glEnable(GL_MULTISAMPLE);
+
+
+    glUniform1i(glGetUniformLocation(grassShader, "grassTexture"), 1); CHECK_GL_ERRORS
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -189,6 +197,8 @@ void KeyboardEvents(unsigned char key, int x, int y) {
         } else {
             glutSetCursor(GLUT_CURSOR_RIGHT_ARROW);
         }
+    } else if (key == 'a') {
+        antialiasing = (! antialiasing);
     }
 }
 
@@ -238,7 +248,7 @@ void windowReshapeFunc(GLint newWidth, GLint newHeight) {
 // Инициализация окна
 void InitializeGLUT(int argc, char **argv) {
     glutInit(&argc, argv);
-    glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE | GLUT_DEPTH);
+    glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE | GLUT_DEPTH | GLUT_MULTISAMPLE);
     glutInitContextVersion(3, 0);
     glutInitWindowPosition(-1, -1);
     glutInitWindowSize(screenWidth, screenHeight);
@@ -260,7 +270,7 @@ vector<VM::vec2> GenerateGrassPositions() {
     srand(time(0));
     vector<VM::vec2> grassPositions(GRASS_INSTANCES);
     for (uint i = 0; i < GRASS_INSTANCES; ++i) {
-        grassPositions[i] = VM::vec2((float)rand() * 10 / RAND_MAX , (float)rand() * 10 / RAND_MAX);
+        grassPositions[i] = VM::vec2((float)rand() * 5 / RAND_MAX , (float)rand() * 5 / RAND_MAX);
     }
     return grassPositions;
 }
@@ -268,12 +278,12 @@ vector<VM::vec2> GenerateGrassPositions() {
 // Здесь вам нужно будет генерировать меш
 vector<VM::vec4> GenMesh(uint n) {
 
-    double rx = (double)rand();
-    double ry = (double)rand();
-    double scmul = sqrt(pow(rx, 2) + pow(ry, 2));
+    //double rx = (double)rand();
+    //double ry = (double)rand();
+    //double scmul = sqrt(pow(rx, 2) + pow(ry, 2));
 
-    rx /= scmul;
-    ry /= (scmul * 1000);
+    //rx /= scmul;
+    //ry /= (scmul * 1000);
 
     return {
         VM::vec4(0, 0, 0, 1),
@@ -318,12 +328,23 @@ vector<VM::vec4> GenMesh(uint n) {
 // Создание травы
 void CreateGrass() {
 
-    glActiveTexture(GL_TEXTURE1);
-    glEnable(GL_TEXTURE_2D);
-    glBindTexture(GL_TEXTURE_2D, grassTexture);
-    grassTexture = SOIL_load_OGL_texture("../Texture/grass.jpg", 3, 0 ,0);
+
+    glClearColor(0.6, 0.6, 0.6, 1.0);
+    glEnable(GL_LIGHTING);;           CHECK_GL_ERRORS
+    glLightModelf(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
+    glEnable(GL_NORMALIZE);
+
+
+    glActiveTexture(GL_TEXTURE1);       CHECK_GL_ERRORS
+
+//    glEnable(GL_TEXTURE_2D);
+//    glBindTexture(GL_TEXTURE_2D, grassTexture);
+
+    //glEnable(GL_TEXTURE_2D);    CHECK_GL_ERRORS
+    glBindTexture(GL_TEXTURE_2D, grassTexture); CHECK_GL_ERRORS
+    grassTexture = SOIL_load_OGL_texture("../Texture/grass.jpg", 3, 0 ,0);  CHECK_GL_ERRORS
     //cout << grassTexture << endl;
-    glGenerateMipmap(GL_TEXTURE_2D);
+    //glGenerateMipmap(GL_TEXTURE_2D);
 
 
     uint LOD = 1;
@@ -413,11 +434,11 @@ void CreateGround() {
     // Земля состоит из двух треугольников
     vector<VM::vec4> meshPoints = {
         VM::vec4(0, 0, 0, 1),
-        VM::vec4(10, 0, 0, 1),
-        VM::vec4(10, 0, 10, 1),
+        VM::vec4(5, 0, 0, 1),
+        VM::vec4(5, 0, 5, 1),
         VM::vec4(0, 0, 0, 1),
-        VM::vec4(10, 0, 10, 1),
-        VM::vec4(0, 0, 10, 1),
+        VM::vec4(5, 0, 5, 1),
+        VM::vec4(0, 0, 5, 1),
     };
 
     // Подробнее о том, как это работает читайте в функции CreateGrass
