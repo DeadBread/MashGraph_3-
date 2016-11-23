@@ -7,6 +7,7 @@
 using namespace std;
 
 const uint GRASS_INSTANCES = 100000; // Количество травинок
+int grass_instances = GRASS_INSTANCES;
 
 GL::Camera camera;               // Мы предоставляем Вам реализацию камеры. В OpenGL камера - это просто 2 матрицы. Модельно-видовая матрица и матрица проекции. // ###
                                  // Задача этого класса только в том чтобы обработать ввод с клавиатуры и правильно сформировать эти матрицы.
@@ -128,6 +129,9 @@ void UpdateGrassVariance() {
 
 // Рисование травы
 void DrawGrass() {
+
+    // cout << glGetUniformLocation(grassShader, "instanceNum") << endl; CHECK_GL_ERRORS
+    // glUniform1i(glGetUniformLocation(grassShader, "instanceNum"), 1); CHECK_GL_ERRORS
     // Тут то же самое, что и в рисовании земли
     glUseProgram(grassShader);                                                   CHECK_GL_ERRORS
     GLint cameraLocation = glGetUniformLocation(grassShader, "camera");          CHECK_GL_ERRORS
@@ -139,6 +143,10 @@ void DrawGrass() {
 
     glActiveTexture(GL_TEXTURE1);
     glUniform1i(glGetUniformLocation(grassShader, "grassTexture"), 1);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
     glDrawArraysInstanced(GL_TRIANGLES, 0, grassPointsCount, GRASS_INSTANCES);   CHECK_GL_ERRORS
     glBindVertexArray(0);                                                        CHECK_GL_ERRORS
@@ -227,7 +235,7 @@ void windowReshapeFunc(GLint newWidth, GLint newHeight) {
 // Инициализация окна
 void InitializeGLUT(int argc, char **argv) {
     glutInit(&argc, argv);
-    glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE);
+    glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE | GLUT_DEPTH);
     glutInitContextVersion(3, 0);
     glutInitWindowPosition(-1, -1);
     glutInitWindowSize(screenWidth, screenHeight);
@@ -299,7 +307,7 @@ vector<VM::vec4> GenMesh(uint n) {
 
         VM::vec4(0, 2, 0, 1),
         VM::vec4(0.25, 2, 0, 1),
-        VM::vec4(0.25, 2.25, 0, 1),
+        VM::vec4(0.125, 2.1, 0, 1),
 
     };
 }

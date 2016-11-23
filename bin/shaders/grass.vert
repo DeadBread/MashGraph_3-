@@ -7,11 +7,13 @@ in vec4 variance;
 out vec2 textCoords;
 
 uniform mat4 camera;
+//uniform int instanceNum;
 
 void main() {
     mat4 scaleMatrix = mat4(1.0);
     scaleMatrix[0][0] = 0.01;
     scaleMatrix[1][1] = 0.1;
+
     mat4 positionMatrix = mat4(1.0);
     positionMatrix[3][0] = position.x;
     positionMatrix[3][2] = position.y;
@@ -28,10 +30,18 @@ void main() {
     turn[2][2] = cos(gl_InstanceID);
     turn[3][3] = 1;
 
-    textCoords = vec2(point.xz);
+    mat4 reScale = mat4(0.0);
+
+    float factor = 0.5 + (gl_InstanceID / (100000 * 2));
+    reScale[0][0] = 1;
+    reScale[1][1] = factor;
+    reScale[2][2] = 1;
+    reScale[3][3] = 1;
+
+    textCoords = vec2(point.yx);
 
     //float p = exp( point.y / 2) - 1;
     float p = pow(point.y, 3) / 20 + pow (point.y, 2) / 10 + pow (point.y, 1.5) / 5; // + pow(point.y, 2);
 
-	gl_Position = camera * (positionMatrix * turn * scaleMatrix * point + variance * p);
+	gl_Position = camera * (positionMatrix * reScale * turn * scaleMatrix * point + variance * p);
 }
