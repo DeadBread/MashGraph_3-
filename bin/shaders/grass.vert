@@ -4,6 +4,8 @@ in vec4 point;
 in vec2 position;
 in vec4 variance;
 
+out vec2 textCoords;
+
 uniform mat4 camera;
 
 void main() {
@@ -14,7 +16,22 @@ void main() {
     positionMatrix[3][0] = position.x;
     positionMatrix[3][2] = position.y;
 
-    float p = exp( point.y / 2) - 1;
+    mat4 turn = mat4(0.0);
 
-	gl_Position = camera * (positionMatrix * scaleMatrix * point + variance * p);
+    float i;
+    i = atan(gl_InstanceID);
+
+    turn[0][0] = cos(gl_InstanceID);
+    turn[0][2] = -sin(gl_InstanceID);
+    turn[1][1] = 1.0;
+    turn[2][0] = sin(gl_InstanceID);
+    turn[2][2] = cos(gl_InstanceID);
+    turn[3][3] = 1;
+
+    textCoords = vec2(point.xz);
+
+    //float p = exp( point.y / 2) - 1;
+    float p = pow(point.y, 3) / 20 + pow (point.y, 2) / 10 + pow (point.y, 1.5) / 5; // + pow(point.y, 2);
+
+	gl_Position = camera * (positionMatrix * turn * scaleMatrix * point + variance * p);
 }

@@ -2,10 +2,11 @@
 #include <vector>
 
 #include "Utility.h"
+#include "SOIL.h"
 
 using namespace std;
 
-const uint GRASS_INSTANCES = 100; // Количество травинок
+const uint GRASS_INSTANCES = 100000; // Количество травинок
 
 GL::Camera camera;               // Мы предоставляем Вам реализацию камеры. В OpenGL камера - это просто 2 матрицы. Модельно-видовая матрица и матрица проекции. // ###
                                  // Задача этого класса только в том чтобы обработать ввод с клавиатуры и правильно сформировать эти матрицы.
@@ -21,6 +22,9 @@ vector<VM::vec4> grassVarianceData(GRASS_INSTANCES); // Вектор со сме
 GLuint groundShader; // Шейдер для земли
 GLuint groundVAO; // VAO для земли
 
+GLuint groundTexture; // Текстура для земли
+GLuint grassTexture; //Текстура для травы
+
 // Размеры экрана
 uint screenWidth = 800;
 uint screenHeight = 600;
@@ -30,6 +34,7 @@ bool captureMouse = true;
 
 // Функция, рисующая замлю
 void DrawGround() {
+
     // Используем шейдер для земли
     glUseProgram(groundShader);                                                  CHECK_GL_ERRORS
 
@@ -42,6 +47,15 @@ void DrawGround() {
     // Подключаем VAO, который содержит буферы, необходимые для отрисовки земли
     glBindVertexArray(groundVAO);                                                CHECK_GL_ERRORS
 
+    glActiveTexture(GL_TEXTURE0);
+    //glGenerateMipmap(GL_TEXTURE_2D);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    glUniform1i(glGetUniformLocation(groundShader, "groundTexture"), 0);
+
     // Рисуем землю: 2 треугольника (6 вершин)
     glDrawArrays(GL_TRIANGLES, 0, 6);                                            CHECK_GL_ERRORS
 
@@ -51,27 +65,46 @@ void DrawGround() {
     glUseProgram(0);                                                             CHECK_GL_ERRORS
 }
 
+float windVar1 = 0;
+float windVar2 = 0;
 // Обновление смещения травинок
 void UpdateGrassVariance() {
     // Генерация случайных смещений
 
-    VM::vec4 wind(0.1 ,0 ,0.1, 0);
+    //VM::vec4 wind(0.1 ,0 ,0.1, 0);
+
+
+
+    VM::vec4 wind(abs(cos(windVar1)) / 30, 0, (abs(cos(windVar2))) / 30, 0);
+    windVar1 += 0.02;
+    windVar2 += 0.04;
+
+    if (windVar1 > 2 * M_PI)
+        windVar1 -= 2 * M_PI;//
+
+    if (windVar2 > 2 * M_PI)
+        windVar2 -= 2 * M_PI;
+    //cout << wind[0] << ' ' << wind[2] << endl;
+
+
+    //VM::vec4 wind(0,0,0,0);
 
     static vector<VM::vec4> acceleratons(GRASS_INSTANCES, VM::vec4(0,0,0,0));
     static vector<VM::vec4> speeds(GRASS_INSTANCES, VM::vec4(0,0,0,0));
 
-    float k = 5;
+    float g = 0.005;
 
     for (uint i = 0; i < GRASS_INSTANCES; ++i) {
 
-        VM::vec4 hook;
-        hook.x = - k * abs(grassVarianceData[i].x);
-        hook.y = - k * abs(grassVarianceData[i].y);
-        hook.z = - k * abs(grassVarianceData[i].z);
+        double k = 6 + i * 1.001 / GRASS_INSTANCES;
 
+        VM::vec4 hook;
+        hook.x = - k * grassVarianceData[i].x;
+        hook.y = - k * grassVarianceData[i].y;
+        hook.z = - k * grassVarianceData[i].z;
 
         acceleratons[i].x = (wind.x + hook.x);
-        acceleratons[i].y = (wind.y + hook.y);
+        acceleratons[i].y = (wind.y + hook.y + g);
         acceleratons[i].z = (wind.z + hook.z);
 
 
@@ -79,9 +112,9 @@ void UpdateGrassVariance() {
         speeds[i].y += acceleratons[i].y;
         speeds[i].z += acceleratons[i].z;
 
-        grassVarianceData[i].x += speeds[i].x / 1000; // = (float)rand() / RAND_MAX / 100;
-        grassVarianceData[i].y += speeds[i].y / 1000 ;
-        grassVarianceData[i].z += speeds[i].z / 1000 ;  //= (float)rand() / RAND_MAX / 100;
+        grassVarianceData[i].x += speeds[i].x / 3000 ; // = (float)rand() / RAND_MAX / 100;
+        grassVarianceData[i].y += speeds[i].y / 3000 ;
+        grassVarianceData[i].z += speeds[i].z / 3000 ;  //= (float)rand() / RAND_MAX / 100;
     }
 
     // Привязываем буфер, содержащий смещения
@@ -103,6 +136,10 @@ void DrawGrass() {
     // Обновляем смещения для травы
     UpdateGrassVariance();
     // Отрисовка травинок в количестве GRASS_INSTANCES
+
+    glActiveTexture(GL_TEXTURE1);
+    glUniform1i(glGetUniformLocation(grassShader, "grassTexture"), 1);
+
     glDrawArraysInstanced(GL_TRIANGLES, 0, grassPointsCount, GRASS_INSTANCES);   CHECK_GL_ERRORS
     glBindVertexArray(0);                                                        CHECK_GL_ERRORS
     glUseProgram(0);                                                             CHECK_GL_ERRORS
@@ -212,7 +249,7 @@ vector<VM::vec2> GenerateGrassPositions() {
     srand(time(0));
     vector<VM::vec2> grassPositions(GRASS_INSTANCES);
     for (uint i = 0; i < GRASS_INSTANCES; ++i) {
-        grassPositions[i] = VM::vec2((float)rand() / RAND_MAX , (float)rand() / RAND_MAX);
+        grassPositions[i] = VM::vec2((float)rand() * 10 / RAND_MAX , (float)rand() * 10 / RAND_MAX);
     }
     return grassPositions;
 }
@@ -229,46 +266,55 @@ vector<VM::vec4> GenMesh(uint n) {
 
     return {
         VM::vec4(0, 0, 0, 1),
-        VM::vec4(2, 0, 0, 1),
+        VM::vec4(0.25, 0, 0, 1),
         VM::vec4(0, 0.5, 0, 1),
 
         VM::vec4(0, 0.5, 0, 1),
-        VM::vec4(2, 0.5, 0, 1),
-        VM::vec4(2, 0, 0, 1),
+        VM::vec4(0.25, 0.5, 0, 1),
+        VM::vec4(0.25, 0, 0, 1),
 
         VM::vec4(0, 0.5, 0, 1),
-        VM::vec4(2, 0.5, 0, 1),
+        VM::vec4(0.25, 0.5, 0, 1),
         VM::vec4(0, 1, 0, 1),
 
         VM::vec4(0, 1, 0, 1),
-        VM::vec4(2, 1, 0, 1),
-        VM::vec4(2, 0.5, 0, 1),
+        VM::vec4(0.25, 1, 0, 1),
+        VM::vec4(0.25, 0.5, 0, 1),
 
         VM::vec4(0, 1, 0, 1),
-        VM::vec4(2, 1, 0, 1),
+        VM::vec4(0.25, 1, 0, 1),
         VM::vec4(0, 1.5, 0, 1),
 
         VM::vec4(0, 1.5, 0, 1),
-        VM::vec4(2, 1.5, 0, 1),
-        VM::vec4(2, 1, 0, 1),
+        VM::vec4(0.25, 1.5, 0, 1),
+        VM::vec4(0.25, 1, 0, 1),
 
         VM::vec4(0, 1.5, 0, 1),
-        VM::vec4(2, 1.5, 0, 1),
+        VM::vec4(0.25, 1.5, 0, 1),
         VM::vec4(0, 2, 0, 1),
 
         VM::vec4(0, 2, 0, 1),
-        VM::vec4(2, 2, 0, 1),
-        VM::vec4(2, 1.5, 0, 1),
+        VM::vec4(0.25, 2, 0, 1),
+        VM::vec4(0.25, 1.5, 0, 1),
 
         VM::vec4(0, 2, 0, 1),
-        VM::vec4(2, 2, 0, 1),
-        VM::vec4(1, 2.25, 0, 1),
+        VM::vec4(0.25, 2, 0, 1),
+        VM::vec4(0.25, 2.25, 0, 1),
 
     };
 }
 
 // Создание травы
 void CreateGrass() {
+
+    glActiveTexture(GL_TEXTURE1);
+    glEnable(GL_TEXTURE_2D);
+    glBindTexture(GL_TEXTURE_2D, grassTexture);
+    grassTexture = SOIL_load_OGL_texture("../Texture/grass.jpg", 3, 0 ,0);
+    cout << grassTexture << endl;
+    glGenerateMipmap(GL_TEXTURE_2D);
+
+
     uint LOD = 1;
     // Создаём меш
     vector<VM::vec4> grassPoints = GenMesh(LOD);
@@ -351,16 +397,16 @@ void CreateCamera() {
     camera.znear = 0.05f;
 }
 
-// Создаём замлю
+// Создаём зeмлю
 void CreateGround() {
     // Земля состоит из двух треугольников
     vector<VM::vec4> meshPoints = {
         VM::vec4(0, 0, 0, 1),
-        VM::vec4(1, 0, 0, 1),
-        VM::vec4(1, 0, 1, 1),
+        VM::vec4(10, 0, 0, 1),
+        VM::vec4(10, 0, 10, 1),
         VM::vec4(0, 0, 0, 1),
-        VM::vec4(1, 0, 1, 1),
-        VM::vec4(0, 0, 1, 1),
+        VM::vec4(10, 0, 10, 1),
+        VM::vec4(0, 0, 10, 1),
     };
 
     // Подробнее о том, как это работает читайте в функции CreateGrass
@@ -368,12 +414,23 @@ void CreateGround() {
     groundShader = GL::CompileShaderProgram("ground");
 
     GLuint pointsBuffer;
+
+    glActiveTexture(GL_TEXTURE0);
+    glEnable(GL_TEXTURE_2D);
+    glBindTexture(GL_TEXTURE_2D, groundTexture);
+    //TODO: заменить на относительный путь!
+    groundTexture = SOIL_load_OGL_texture("../Texture/ground.bmp", 3, 0 ,0);
+    cout << groundTexture << endl;
+    glGenerateMipmap(GL_TEXTURE_2D);
+
     glGenBuffers(1, &pointsBuffer);                                              CHECK_GL_ERRORS
     glBindBuffer(GL_ARRAY_BUFFER, pointsBuffer);                                 CHECK_GL_ERRORS
     glBufferData(GL_ARRAY_BUFFER, sizeof(VM::vec4) * meshPoints.size(), meshPoints.data(), GL_STATIC_DRAW); CHECK_GL_ERRORS
 
     glGenVertexArrays(1, &groundVAO);                                            CHECK_GL_ERRORS
     glBindVertexArray(groundVAO);                                                CHECK_GL_ERRORS
+
+    //glBindTexture(GL_TEXTURE_2D, text);                                          CHECK_GL_ERRORS
 
     GLuint index = glGetAttribLocation(groundShader, "point");                   CHECK_GL_ERRORS
     glEnableVertexAttribArray(index);                                            CHECK_GL_ERRORS
