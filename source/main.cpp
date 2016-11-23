@@ -7,7 +7,7 @@
 using namespace std;
 
 const uint GRASS_INSTANCES = 100000; // Количество травинок
-int grass_instances = GRASS_INSTANCES;
+GLint grass_instances = GRASS_INSTANCES;
 
 GL::Camera camera;               // Мы предоставляем Вам реализацию камеры. В OpenGL камера - это просто 2 матрицы. Модельно-видовая матрица и матрица проекции. // ###
                                  // Задача этого класса только в том чтобы обработать ввод с клавиатуры и правильно сформировать эти матрицы.
@@ -130,8 +130,6 @@ void UpdateGrassVariance() {
 // Рисование травы
 void DrawGrass() {
 
-    // cout << glGetUniformLocation(grassShader, "instanceNum") << endl; CHECK_GL_ERRORS
-    // glUniform1i(glGetUniformLocation(grassShader, "instanceNum"), 1); CHECK_GL_ERRORS
     // Тут то же самое, что и в рисовании земли
     glUseProgram(grassShader);                                                   CHECK_GL_ERRORS
     GLint cameraLocation = glGetUniformLocation(grassShader, "camera");          CHECK_GL_ERRORS
@@ -139,6 +137,11 @@ void DrawGrass() {
     glBindVertexArray(grassVAO);                                                 CHECK_GL_ERRORS
     // Обновляем смещения для травы
     UpdateGrassVariance();
+
+    GLint loc = glGetUniformLocation(grassShader, "instanceNum");
+    //cout << loc << endl;
+    glUniform1i(loc, grass_instances); CHECK_GL_ERRORS
+
     // Отрисовка травинок в количестве GRASS_INSTANCES
 
     glActiveTexture(GL_TEXTURE1);
@@ -319,7 +322,7 @@ void CreateGrass() {
     glEnable(GL_TEXTURE_2D);
     glBindTexture(GL_TEXTURE_2D, grassTexture);
     grassTexture = SOIL_load_OGL_texture("../Texture/grass.jpg", 3, 0 ,0);
-    cout << grassTexture << endl;
+    //cout << grassTexture << endl;
     glGenerateMipmap(GL_TEXTURE_2D);
 
 
@@ -428,7 +431,7 @@ void CreateGround() {
     glBindTexture(GL_TEXTURE_2D, groundTexture);
     //TODO: заменить на относительный путь!
     groundTexture = SOIL_load_OGL_texture("../Texture/ground.bmp", 3, 0 ,0);
-    cout << groundTexture << endl;
+    //cout << groundTexture << endl;
     glGenerateMipmap(GL_TEXTURE_2D);
 
     glGenBuffers(1, &pointsBuffer);                                              CHECK_GL_ERRORS
