@@ -6,7 +6,7 @@
 
 using namespace std;
 
-const uint GRASS_INSTANCES = 20000; // Количество травинок
+const uint GRASS_INSTANCES = 10000; // Количество травинок
 GLint grass_instances = GRASS_INSTANCES;
 
 GL::Camera camera;               // Мы предоставляем Вам реализацию камеры. В OpenGL камера - это просто 2 матрицы. Модельно-видовая матрица и матрица проекции. // ###
@@ -89,12 +89,12 @@ void UpdateGrassVariance() {
     //cout << wind[0] << ' ' << wind[2] << endl;
 
 
-    //VM::vec4 wind(0,0,0,0);
+    //VM::vec4 wind(0.1,0,0.1,0);
 
     static vector<VM::vec4> acceleratons(GRASS_INSTANCES, VM::vec4(0,0,0,0));
     static vector<VM::vec4> speeds(GRASS_INSTANCES, VM::vec4(0,0,0,0));
 
-    float g = 0.005;
+    float g = 0.0009;
 
     for (uint i = 0; i < GRASS_INSTANCES; ++i) {
 
@@ -289,40 +289,84 @@ vector<VM::vec4> GenMesh(uint n) {
     return {
 
         VM::vec4(0, 0, 0, 1),
+        VM::vec4(0, 0.2, 0, 1),
         VM::vec4(0.25, 0, 0, 1),
+
+        VM::vec4(0, 0.2, 0, 1),
+        VM::vec4(0.25, 0.2, 0, 1),
+        VM::vec4(0.25, 0, 0, 1),
+
+        VM::vec4(0, 0.2, 0, 1),
+        VM::vec4(0.25, 0.2, 0, 1),
         VM::vec4(0, 0.5, 0, 1),
 
         VM::vec4(0, 0.5, 0, 1),
         VM::vec4(0.25, 0.5, 0, 1),
-        VM::vec4(0.25, 0, 0, 1),
+        VM::vec4(0.25, 0.2, 0, 1),
 
         VM::vec4(0, 0.5, 0, 1),
         VM::vec4(0.25, 0.5, 0, 1),
+        VM::vec4(0, 0.75, 0, 1),
+
+        VM::vec4(0, 0.75, 0, 1),
+        VM::vec4(0.25, 0.75, 0, 1),
+        VM::vec4(0.25, 0.5, 0, 1),
+
+        VM::vec4(0, 0.75, 0, 1),
+        VM::vec4(0.25, 0.75, 0, 1),
         VM::vec4(0, 1, 0, 1),
 
         VM::vec4(0, 1, 0, 1),
         VM::vec4(0.25, 1, 0, 1),
-        VM::vec4(0.25, 0.5, 0, 1),
+        VM::vec4(0.25, 0.75, 0, 1),
 
         VM::vec4(0, 1, 0, 1),
         VM::vec4(0.25, 1, 0, 1),
+        VM::vec4(0, 1.25, 0, 1),
+
+        VM::vec4(0, 1.25, 0, 1),
+        VM::vec4(0.25, 1.25, 0, 1),
+        VM::vec4(0.25, 1, 0, 1),
+
+        VM::vec4(0, 1.25, 0, 1),
+        VM::vec4(0.25, 1.25, 0, 1),
         VM::vec4(0, 1.5, 0, 1),
 
         VM::vec4(0, 1.5, 0, 1),
         VM::vec4(0.25, 1.5, 0, 1),
-        VM::vec4(0.25, 1, 0, 1),
+        VM::vec4(0.25, 1.25, 0, 1),
 
         VM::vec4(0, 1.5, 0, 1),
         VM::vec4(0.25, 1.5, 0, 1),
+        VM::vec4(0, 1.75, 0, 1),
+
+        VM::vec4(0, 1.75, 0, 1),
+        VM::vec4(0.25, 1.75, 0, 1),
+        VM::vec4(0.25, 1.5, 0, 1),
+
+        VM::vec4(0, 1.75, 0, 1),
+        VM::vec4(0.25, 1.75, 0, 1),
         VM::vec4(0, 2, 0, 1),
 
         VM::vec4(0, 2, 0, 1),
         VM::vec4(0.25, 2, 0, 1),
-        VM::vec4(0.25, 1.5, 0, 1),
+        VM::vec4(0.25, 1.75, 0, 1),
 
         VM::vec4(0, 2, 0, 1),
+        VM::vec4(0.125, 2, 0, 1),
+        VM::vec4(0.0625, 2.1, 0, 1),
+
         VM::vec4(0.25, 2, 0, 1),
-        VM::vec4(0.125, 2.1, 0, 1),
+        VM::vec4(0.125, 2, 0, 1),
+        VM::vec4(0.1875, 2.1, 0, 1),
+
+        VM::vec4(0.0625, 2.1, 0, 1),
+        VM::vec4(0.1875, 2.1, 0, 1),
+        VM::vec4(0.125, 2.0, 0, 1),
+
+        VM::vec4(0.0625, 2.1, 0, 1),
+        VM::vec4(0.1875, 2.1, 0, 1),
+        VM::vec4(0.125, 2.14, 0, 1),
 
     };
 }
@@ -331,7 +375,7 @@ vector<VM::vec4> GenMesh(uint n) {
 void CreateGrass() {
 
 
-    glClearColor(0.6, 0.6, 0.6, 1.0);
+    glClearColor(0.4, 0.5, 1.0, 1.0);
     glEnable(GL_LIGHTING);;           CHECK_GL_ERRORS
     glLightModelf(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
     glEnable(GL_NORMALIZE);

@@ -13,8 +13,8 @@ void main() {
 
     //const vec4 diffColor = vec4 ( 0.5, 0.0, 0.0, 1.0 );
 
-    float mc = 0.5 + inst.x / (inst.y * 3);
-    vec4 morecolor = vec4(0, 1, 0, 0);
+    float mc = 0.75 + inst.x / (inst.y * 4);
+    vec4 morecolor = vec4(0, mc, 0, 0);
 
     vec4 dark = vec4(1.0);
     dark.y = textCoords.x / 2.0 + 0.5;

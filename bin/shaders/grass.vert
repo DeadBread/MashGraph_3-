@@ -37,7 +37,7 @@ void main() {
 
     mat4 reScale = mat4(0.0);
 
-    float factor = 0.5 + (gl_InstanceID / (instanceNum * 2.0));
+    float factor = 1 - (gl_InstanceID / (instanceNum * 2.0));
     reScale[0][0] = 1;
     reScale[1][1] = factor;
     reScale[2][2] = 1;
@@ -51,9 +51,9 @@ void main() {
 
     vec4 normal = vec4(- point.z, point.yx, 1);
 
-    vec4 lightpos = vec4(1.0, 1.0, 1.0, 1);
+    vec4 lightpos = vec4(1.5, 1, 1.5, 1);
 
-    float p = pow(point.y, 3) / 20 + pow (point.y, 2) / 10 + pow (point.y, 1.5) / 5; // + pow(point.y, 2);
+    float p = pow(point.y, 3) / 20 + pow (point.y, 2) / 30 + pow (point.y, 1.5) / 15; // + pow(point.y, 2);
 
     mat4 mvMatrix = positionMatrix * reScale * turn * scaleMatrix;
 
