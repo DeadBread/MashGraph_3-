@@ -7,11 +7,12 @@ in vec4 variance;
 out vec2 textCoords;
 out vec2 inst;
 
-out vec3 l;
-out vec3 n;
+out vec3 light;
+out vec3 norm;
 
 uniform mat4 camera;
 uniform int instanceNum;
+
 
 void main() {
 
@@ -61,13 +62,9 @@ void main() {
 
     vec3 pos = vec3 (mvMatrix * point);
 
-    l = normalize(vec3(lightpos) - pos);
+    light = normalize(vec3(lightpos) - pos);
 
-    n = normalize(vec3( nMatrix * normal ));
-
-
-
-    //vec4 wPoint = (positionMatrix * reScale * turn * scaleMatrix * point + variance * p);
+    norm = normalize(vec3( nMatrix * normal ));
 
 	gl_Position = camera * (positionMatrix * reScale * turn * scaleMatrix * point + variance * p);
 }
